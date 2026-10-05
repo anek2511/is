@@ -103,10 +103,11 @@ body{font-family:'Noto Sans Thai',sans-serif;background:#f3f4f6}
 
 <script>
 // ====== ตั้งค่า Supabase (Project Settings > API) ======
-const SUPABASE_URL = "https://jferwacafabwcaujionj.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_L9zsbOCJT9D2zW1Bib_RNw_rdddQNeY";
+const SUPABASE_URL = "https://YOUR-PROJECT-ID.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
 const TABLE = "system_links";
-const EMAIL_DOMAIN = "@portfolio.local"; // พิมพ์ Username "admin" => admin@portfolio.local
+const ADMIN_EMAIL = "admin@portfolio.local"; // อีเมลของผู้ดูแลใน Supabase Auth
+const PASS_SUFFIX = "-kbtc"; // ระบบเติมต่อท้ายรหัสผ่านที่พิมพ์ (พิมพ์ 2260 => ส่ง 2260-kbtc)
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let allData = [], isLoggedIn = false, sortableInstance = null;
@@ -139,17 +140,15 @@ function switchTab(tab){
   if (isLoggedIn) return showAdmin();
   Swal.fire({
     title:'เข้าสู่ระบบผู้ดูแลระบบ',
-    html:`<input type="text" id="loginUser" class="swal2-input" placeholder="Username" autocomplete="username">
-          <input type="password" id="loginPass" class="swal2-input" placeholder="Password" autocomplete="current-password">`,
+    html:`<input type="password" id="loginPass" class="swal2-input" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">`,
     confirmButtonText:'เข้าสู่ระบบ', showCancelButton:true, cancelButtonText:'ยกเลิก', focusConfirm:false,
     showLoaderOnConfirm:true,
+    didOpen: () => Swal.getPopup().querySelector('#loginPass').focus(),
     preConfirm: async () => {
-      const user = Swal.getPopup().querySelector('#loginUser').value.trim();
       const pass = Swal.getPopup().querySelector('#loginPass').value;
-      if (!user || !pass) { Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบ'); return false; }
-      const email = user.includes('@') ? user : user + EMAIL_DOMAIN;
-      const { error } = await db.auth.signInWithPassword({ email, password: pass });
-      if (error) { Swal.showValidationMessage('Username หรือ Password ไม่ถูกต้อง'); return false; }
+      if (!pass) { Swal.showValidationMessage('กรุณากรอกรหัสผ่าน'); return false; }
+      const { error } = await db.auth.signInWithPassword({ email: ADMIN_EMAIL, password: pass + PASS_SUFFIX });
+      if (error) { Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง'); return false; }
       return true;
     }
   }).then(r => {

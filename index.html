@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio ครูเอนก จารุเกียรติกุล</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<style>
+body{font-family:'Noto Sans Thai',sans-serif;background:#f3f4f6}
+.nav-active{background:#2563eb;color:#fff}
+.nav-inactive{background:#fff;color:#4b5563}
+.nav-inactive:hover{background:#f9fafb}
+.sortable-ghost{opacity:.4;background:#e5e7eb}
+.drag-handle{cursor:move;touch-action:none}
+</style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+<div class="max-w-5xl mx-auto">
+
+  <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6 p-6 flex flex-col md:flex-row items-center gap-6 border-l-8 border-blue-600">
+    <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-100 flex-shrink-0 bg-blue-50">
+      <img src="https://lh3.googleusercontent.com/d/1vej9S5d4TVB8TIJWquqG_2U_Ck8ZtowS" class="w-full h-full object-cover" alt="" onerror="this.style.display='none'">
+    </div>
+    <div class="text-center md:text-left flex-1">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800">ระบบสารสนเทศงานครูเอนก จารุเกียรติกุล</h1>
+      <p class="text-gray-600 text-lg">สาขาวิชาเทคโนโลยีธุรกิจดิจิทัล</p>
+      <p class="text-blue-600 font-medium">วิทยาลัยเทคนิคกระบี่</p>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-4 mb-6">
+    <button onclick="switchTab('home')" id="btnHome" class="px-6 py-2 rounded-full font-medium shadow-sm transition-all nav-active flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      ระบบงานทั้งหมด
+    </button>
+    <button onclick="switchTab('admin')" id="btnAdmin" class="px-6 py-2 rounded-full font-medium shadow-sm transition-all nav-inactive flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      ผู้ดูแลระบบ
+    </button>
+    <div class="flex-1"></div>
+    <button onclick="logout()" id="btnLogout" class="hidden px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-full font-medium transition flex items-center gap-2 text-sm">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      ออกจากระบบ
+    </button>
+  </div>
+
+  <div id="homeView">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="homeGrid">
+      <div class="col-span-full text-center p-10 text-gray-500">กำลังโหลดข้อมูล...</div>
+    </div>
+  </div>
+
+  <div id="adminView" class="hidden space-y-6">
+    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        เพิ่ม/แก้ไข ข้อมูล
+      </h2>
+      <form id="portfolioForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <input type="hidden" id="editId" value="">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อระบบงาน</label>
+            <input type="text" id="sysName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="เช่น ระบบเช็คชื่อออนไลน์">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">ลิงก์ (URL)</label>
+            <input type="url" id="sysLink" required pattern="https?://.+" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="https://...">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="resetForm()" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition hidden" id="cancelBtn">ยกเลิก</button>
+          <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-lg flex items-center" id="submitBtn"><span id="btnText">บันทึกข้อมูล</span></button>
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <h2 class="text-xl font-semibold text-gray-800">รายการข้อมูล (ลากเพื่อเรียง)</h2>
+        <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">💡 กดที่ไอคอน ☰ แล้วลากเพื่อเปลี่ยนลำดับ</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b border-gray-200">
+              <th class="p-4 font-semibold text-center w-16">ย้าย</th>
+              <th class="p-4 font-semibold">ชื่อระบบงาน</th>
+              <th class="p-4 font-semibold w-1/3">ลิงก์ระบบ</th>
+              <th class="p-4 font-semibold text-center w-32">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody" class="text-gray-700 text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== ตั้งค่า Supabase (Project Settings > API) ======
+const SUPABASE_URL = "https://jferwacafabwcaujionj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_L9zsbOCJT9D2zW1Bib_RNw_rdddQNeY";
+const TABLE = "system_links";
+const EMAIL_DOMAIN = "@portfolio.local"; // พิมพ์ Username "admin" => admin@portfolio.local
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let allData = [], isLoggedIn = false, sortableInstance = null;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(u) ? u : '#';
+const $ = id => document.getElementById(id);
+const showErr = e => Swal.fire({icon:'error', title:'เกิดข้อผิดพลาด', text:(e && e.message) || String(e)});
+const loading = t => Swal.fire({title:t, allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+
+window.onload = async () => {
+  const { data } = await db.auth.getSession();
+  if (data.session) { isLoggedIn = true; $('btnLogout').classList.remove('hidden'); }
+  loadData();
+};
+
+function showHome(){
+  $('homeView').classList.remove('hidden'); $('adminView').classList.add('hidden');
+  $('btnHome').classList.add('nav-active'); $('btnHome').classList.remove('nav-inactive');
+  $('btnAdmin').classList.add('nav-inactive'); $('btnAdmin').classList.remove('nav-active');
+}
+function showAdmin(){
+  $('homeView').classList.add('hidden'); $('adminView').classList.remove('hidden');
+  $('btnAdmin').classList.add('nav-active'); $('btnAdmin').classList.remove('nav-inactive');
+  $('btnHome').classList.add('nav-inactive'); $('btnHome').classList.remove('nav-active');
+}
+
+function switchTab(tab){
+  if (tab === 'home') return showHome();
+  if (isLoggedIn) return showAdmin();
+  Swal.fire({
+    title:'เข้าสู่ระบบผู้ดูแลระบบ',
+    html:`<input type="text" id="loginUser" class="swal2-input" placeholder="Username" autocomplete="username">
+          <input type="password" id="loginPass" class="swal2-input" placeholder="Password" autocomplete="current-password">`,
+    confirmButtonText:'เข้าสู่ระบบ', showCancelButton:true, cancelButtonText:'ยกเลิก', focusConfirm:false,
+    showLoaderOnConfirm:true,
+    preConfirm: async () => {
+      const user = Swal.getPopup().querySelector('#loginUser').value.trim();
+      const pass = Swal.getPopup().querySelector('#loginPass').value;
+      if (!user || !pass) { Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบ'); return false; }
+      const email = user.includes('@') ? user : user + EMAIL_DOMAIN;
+      const { error } = await db.auth.signInWithPassword({ email, password: pass });
+      if (error) { Swal.showValidationMessage('Username หรือ Password ไม่ถูกต้อง'); return false; }
+      return true;
+    }
+  }).then(r => {
+    if (r.isConfirmed) {
+      isLoggedIn = true; $('btnLogout').classList.remove('hidden');
+      Swal.fire({icon:'success', title:'ยินดีต้อนรับ', text:'เข้าสู่ระบบสำเร็จ', timer:1500, showConfirmButton:false});
+      showAdmin();
+    }
+  });
+}
+
+function logout(){
+  Swal.fire({title:'ยืนยันการออกจากระบบ?', text:'คุณต้องการออกจากระบบผู้ดูแลใช่หรือไม่', icon:'question',
+    showCancelButton:true, confirmButtonColor:'#d33', cancelButtonColor:'#3085d6',
+    confirmButtonText:'ใช่, ออกจากระบบ', cancelButtonText:'ยกเลิก'
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    await db.auth.signOut();
+    isLoggedIn = false; $('btnLogout').classList.add('hidden');
+    resetForm(); showHome();
+    Swal.fire('ออกจากระบบแล้ว', '', 'success');
+  });
+}
+
+async function loadData(){
+  const { data, error } = await db.from(TABLE).select('*').order('sort_order', {ascending:true}).order('id', {ascending:true});
+  if (error) {
+    $('homeGrid').innerHTML = `<div class="col-span-full text-center p-10 bg-white rounded-xl text-red-500 border border-dashed border-red-200">โหลดข้อมูลไม่สำเร็จ: ${esc(error.message)}</div>`;
+    return;
+  }
+  allData = data || [];
+  renderAllViews();
+}
+function renderAllViews(){ renderHomeGrid(); renderAdminTable(); }
+
+const COLORS = ['bg-blue-100 text-blue-600','bg-purple-100 text-purple-600','bg-green-100 text-green-600','bg-orange-100 text-orange-600'];
+
+function renderHomeGrid(){
+  const grid = $('homeGrid');
+  if (!allData.length) {
+    grid.innerHTML = `<div class="col-span-full text-center p-10 bg-white rounded-xl text-gray-500 border border-dashed border-gray-300">ยังไม่มีผลงานในระบบ</div>`;
+    return;
+  }
+  grid.innerHTML = allData.map((row, i) => `
+    <div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col">
+      <div class="p-6 flex-1">
+        <div class="w-12 h-12 rounded-lg ${COLORS[i % COLORS.length]} flex items-center justify-center mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2" title="${esc(row.name)}">${esc(row.name)}</h3>
+        <p class="text-gray-500 text-sm truncate">${esc(row.url)}</p>
+      </div>
+      <a href="${esc(safeUrl(row.url))}" target="_blank" rel="noopener noreferrer" class="bg-gray-50 p-3 text-center text-blue-600 font-medium hover:bg-blue-50 transition border-t border-gray-100 flex items-center justify-center gap-2">
+        เปิดระบบงาน
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+      </a>
+    </div>`).join('');
+}
+
+function renderAdminTable(){
+  const tbody = $('adminTableBody');
+  if (!allData.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500">ไม่พบข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allData.map(row => `
+    <tr class="border-b border-gray-100 hover:bg-gray-50 transition bg-white" data-id="${row.id}">
+      <td class="p-4 text-center drag-handle text-gray-400 hover:text-blue-500">
+        <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+      </td>
+      <td class="p-4 font-medium text-gray-800">${esc(row.name)}</td>
+      <td class="p-4 text-gray-500 truncate max-w-xs">${esc(row.url)}</td>
+      <td class="p-4 text-center">
+        <div class="flex justify-center gap-2">
+          <button onclick="prepareEdit(${row.id})" class="p-2 bg-yellow-100 text-yellow-600 rounded-md hover:bg-yellow-200 transition" title="แก้ไข">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          </button>
+          <button onclick="confirmDelete(${row.id})" class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition" title="ลบ">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+  initSortable();
+}
+
+function initSortable(){
+  if (sortableInstance) sortableInstance.destroy();
+  sortableInstance = Sortable.create($('adminTableBody'), {
+    handle:'.drag-handle', animation:150, ghostClass:'sortable-ghost',
+    onEnd: () => updateOrder()
+  });
+}
+
+async function updateOrder(){
+  const ids = [...document.querySelectorAll('#adminTableBody tr[data-id]')].map(tr => Number(tr.dataset.id));
+  allData = ids.map((id, i) => ({ ...allData.find(r => r.id === id), sort_order: i + 1 }));
+  renderAllViews();
+  const Toast = Swal.mixin({toast:true, position:'top-end', showConfirmButton:false, timer:2000, timerProgressBar:true});
+  Toast.fire({icon:'info', title:'กำลังบันทึกลำดับใหม่...'});
+  const rows = allData.map(r => ({ id:r.id, name:r.name, url:r.url, sort_order:r.sort_order }));
+  const { error } = await db.from(TABLE).upsert(rows, { onConflict:'id' });
+  if (error) { showErr(error); loadData(); return; }
+  Toast.fire({icon:'success', title:'เรียงลำดับเสร็จสิ้น'});
+}
+
+async function handleFormSubmit(e){
+  e.preventDefault();
+  const name = $('sysName').value.trim(), url = $('sysLink').value.trim(), id = $('editId').value;
+  loading('กำลังบันทึก...');
+  let error, msg;
+  if (!id) {
+    const next = allData.reduce((m, r) => Math.max(m, r.sort_order || 0), 0) + 1;
+    ({ error } = await db.from(TABLE).insert({ name, url, sort_order: next }));
+    msg = 'บันทึกข้อมูลสำเร็จ';
+  } else {
+    ({ error } = await db.from(TABLE).update({ name, url, updated_at:new Date().toISOString() }).eq('id', id));
+    msg = 'แก้ไขข้อมูลสำเร็จ';
+  }
+  if (error) return showErr(error);
+  Swal.fire({icon:'success', title:'เสร็จสิ้น', text:msg, timer:1500, showConfirmButton:false});
+  resetForm(); loadData();
+}
+
+function prepareEdit(id){
+  const item = allData.find(r => r.id === id); if (!item) return;
+  $('sysName').value = item.name; $('sysLink').value = item.url; $('editId').value = id;
+  $('btnText').innerText = 'อัปเดตข้อมูล';
+  $('submitBtn').classList.replace('bg-blue-600','bg-yellow-500');
+  $('submitBtn').classList.replace('hover:bg-blue-700','hover:bg-yellow-600');
+  $('cancelBtn').classList.remove('hidden');
+  $('portfolioForm').scrollIntoView({behavior:'smooth'});
+}
+
+function resetForm(){
+  $('portfolioForm').reset(); $('editId').value = '';
+  $('btnText').innerText = 'บันทึกข้อมูล';
+  $('submitBtn').classList.replace('bg-yellow-500','bg-blue-600');
+  $('submitBtn').classList.replace('hover:bg-yellow-600','hover:bg-blue-700');
+  $('cancelBtn').classList.add('hidden');
+}
+
+function confirmDelete(id){
+  Swal.fire({title:'ยืนยันการลบ?', icon:'warning', showCancelButton:true, confirmButtonColor:'#d33',
+    confirmButtonText:'ลบเลย', cancelButtonText:'ยกเลิก'
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    loading('กำลังลบ...');
+    const { error } = await db.from(TABLE).delete().eq('id', id);
+    if (error) return showErr(error);
+    Swal.fire('ลบสำเร็จ!', '', 'success'); loadData();
+  });
+}
+</script>
+</body>
+</html>
